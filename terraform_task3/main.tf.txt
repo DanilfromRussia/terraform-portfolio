@@ -1,0 +1,50 @@
+terraform {
+        required_providers {
+                yandex = {
+                        source = "yandex-cloud/yandex"
+                }
+        }
+        required_version = ">= 0.13"
+}
+
+provider "yandex" {
+        service_account_key_file = var.service_account_key_file
+        cloud_id = var.cloud_id
+        folder_id = var.folder_id
+        zone = "ru-central1-d"
+}
+
+data "yandex_compute_image" "image-name" {
+        family = var.vm_image_id
+
+}
+
+resource "yandex_compute_instance" "vm-emelyanov2002" {
+        name = "vm-emelyanov2002"
+        platform_id = "standard-v3"
+        resources {
+                cores = 2
+                memory = 2
+#               platform_id = "standard-v3"
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = data.yandex_compute_image.image-name.id
+                }
+        }
+
+        network_interface {
+                index = 0
+                subnet_id = yandex_vpc_subnet.foo.id
+        }
+}
+
+resource "yandex_vpc_network" "foo" {
+        name = "vpc_emelyanov-2002"
+}
+
+resource "yandex_vpc_subnet" "foo" {
+        network_id = yandex_vpc_network.foo.id
+        v4_cidr_blocks = ["10.5.0.0/28"]
+}

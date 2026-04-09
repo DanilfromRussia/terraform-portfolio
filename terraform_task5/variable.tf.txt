@@ -1,0 +1,22 @@
+variable "service_account_key_file" {
+        type = string
+}
+
+variable "cloud_id" {
+        type = string
+}
+
+variable "folder_id" {
+        type = string
+}
+
+variable "env" {
+  default = "dev"
+}
+
+variable "port_list" {
+  default = {
+    "prod" = ["8080", "443"]
+    "dev"  = ["22", "80", "8080", "443"]
+  }
+}

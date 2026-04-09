@@ -1,0 +1,12 @@
+output "bucket_name" {
+  value = yandex_storage_bucket.bucket-emelyanov2002.bucket
+}
+output "bucket_acl" {
+  value = yandex_storage_bucket.bucket-emelyanov2002.acl
+}
+output "bucket_versioning" {
+  value = yandex_storage_bucket.bucket-emelyanov2002.versioning
+}
+output "bucket_tags" {
+  value = yandex_storage_bucket.bucket-emelyanov2002.tags
+}

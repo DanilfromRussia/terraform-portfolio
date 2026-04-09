@@ -1,0 +1,74 @@
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+
+
+  backend "s3" {
+    endpoint   = "https://storage.yandexcloud.net"
+    bucket     = "tf-state-emelyanov2002"
+    region     = "ru-central1"
+    key        = "opt/02-sg/terraform.tfstate"
+    access_key = ""
+    secret_key = ""
+
+    skip_region_validation      = true
+    skip_credentials_validation = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
+}
+
+provider "yandex" {
+        service_account_key_file = "authorized_key.json"
+        folder_id = ""
+        cloud_id = ""
+}
+
+
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    endpoint   = "https://storage.yandexcloud.net"
+    bucket     = "tf-state-emelyanov2002"
+    region     = "ru-central1"
+    key        = "opt/01-net/terraform.tfstate"
+    access_key = ""
+    secret_key = ""
+
+    skip_region_validation      = true
+    skip_credentials_validation = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
+}
+
+
+resource "yandex_vpc_security_group" "group-1" {
+        name = "sg-emelyanov2002"
+        network_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+        dynamic "ingress" {
+        for_each = lookup(var.port_list, "dev")
+                content {
+                        protocol       = "TCP"
+                        description    = "rule1 description"
+                        v4_cidr_blocks = ["0.0.0.0/0"]
+                        port           = ingress.value
+                }
+        }
+}
+
+variable "port_list" {
+  default = {
+    "dev"  = ["22", "80", "8080", "443"]
+  }
+}
+
+output "sg_id" {
+  value = yandex_vpc_security_group.group-1.id
+}

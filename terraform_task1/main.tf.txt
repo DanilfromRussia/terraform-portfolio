@@ -1,0 +1,87 @@
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+provider "yandex" {
+  service_account_key_file = "authorized_key.json"
+  cloud_id  = "b1g194thq1f5sstpfb1r"
+  folder_id = "b1g82eegniu5limvvfk3"
+  zone      = "ru-central1-d"
+}
+
+# RESOURCE FOR DEBIAN_________________________
+resource "yandex_vpc_network" "debian_net-emelyanov2002" {
+        name = "deb_net-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "debian_subnet-emelyanov2002" {
+        name = "debian_subnet-emelyanov2002"
+        zone = "ru-central1-b"
+        network_id = yandex_vpc_network.debian_net-emelyanov2002.id
+        v4_cidr_blocks = ["192.168.10.0/24"]
+}
+# RESOURCE FOR CENTOS__________________________
+resource "yandex_vpc_network" "centos_net-emelyanov2002" {
+        name = "centos_net-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "centos_subnet-emelyanov2002" {
+        name = "centos_subnet-emelyanov2002"
+        zone = "ru-central1-a"
+        network_id = yandex_vpc_network.centos_net-emelyanov2002.id
+        v4_cidr_blocks = ["192.168.20.0/24"]
+}
+#______________________________________________
+
+data "yandex_compute_image" "debian-emelyanov2002" {
+        family = "debian-12" #исправить
+}
+
+data "yandex_compute_image" "centos-emelyanov2002" {
+        family = "centos-stream-8" #исправить
+}
+
+# MAKE DEBIAN VM
+resource "yandex_compute_instance" "vm_debian" {
+        name = "vm_debian"
+        zone = "ru-central1-b"
+        resources {
+                cores = 2
+                memory = 2
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = data.yandex_compute_image.debian-emelyanov2002.id
+                }
+        }
+        network_interface {
+                subnet_id = yandex_vpc_subnet.debian_subnet-emelyanov2002.id
+                nat = true
+        }
+}
+
+# MAKE CENTOS VM
+resource "yandex_compute_instance" "vm_centos" {
+        name = "vm_centos"
+        zone = "ru-central1-a"
+        resources {
+                cores = 2
+                memory = 2
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = data.yandex_compute_image.centos-emelyanov2002.id
+                }
+        }
+        network_interface {
+                subnet_id = yandex_vpc_subnet.centos_subnet-emelyanov2002.id
+                nat = true
+        }
+}

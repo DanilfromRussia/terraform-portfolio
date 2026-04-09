@@ -1,0 +1,118 @@
+terraform {
+        required_providers {
+                yandex = {
+                        source = "yandex-cloud/yandex"
+                }
+        }
+        required_version = ">=0.13"
+}
+
+provider "yandex" {
+        service_account_key_file = var.service_account_key_file
+        cloud_id = var.cloud_id
+        folder_id = var.folder_id
+}
+
+data "yandex_compute_image" "foo" {
+        family = "ubuntu-2204-lts"
+}
+
+resource "yandex_vpc_network" "noo" {
+        name = "network-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "soo" {
+        name = "subnet-emelyanov2002"
+        zone = "ru-central1-d"
+        v4_cidr_blocks = ["10.5.0.0/28"]
+        network_id = yandex_vpc_network.noo.id
+}
+
+
+resource "yandex_compute_instance" "vm_dev" {
+        name = "vmdev-emelyanov2002"
+        platform_id = "standard-v3"
+        zone = "ru-central1-d"
+        resources {
+                cores = 2
+                memory = 2
+        }
+
+        network_interface {
+                subnet_id = yandex_vpc_subnet.soo.id
+                nat = true
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = data.yandex_compute_image.foo.image_id
+                }
+        }
+}
+
+resource "yandex_compute_instance" "vm_prod" {
+        name = "vmprod-emelyanov2002"
+        platform_id = "standard-v3"
+        zone = "ru-central1-d"
+        resources {
+                cores = 2
+                memory = 4
+        }
+
+        network_interface {
+                subnet_id = yandex_vpc_subnet.soo.id
+                nat = true
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = data.yandex_compute_image.foo.image_id
+                }
+        }
+}
+
+resource "yandex_vpc_security_group" "sgroup_dev" {
+        name = "sg-emelyanov2002-dev"
+        network_id = yandex_vpc_network.noo.id
+
+        dynamic "ingress" {
+          for_each = lookup(var.port_list, var.env)
+          content {
+                port           = ingress.value
+                protocol       = "TCP"
+                v4_cidr_blocks = ["0.0.0.0/0"]
+          }
+        }
+
+        # настройка правил исходящего трафика для ресурсов сети
+        egress {
+                protocol       = "ANY"
+                description    = "rule1 description"
+                v4_cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+                from_port      = 0
+                to_port        = 0
+        }
+}
+
+resource "yandex_vpc_security_group" "sgroup_prod" {
+        name = "sg-emelyanov2002-prod"
+        network_id = yandex_vpc_network.noo.id
+
+        dynamic "ingress" {
+          for_each = lookup(var.port_list, "prod")
+          content {
+                port           = ingress.value
+                protocol       = "TCP"
+                v4_cidr_blocks = ["0.0.0.0/0"]
+          }
+        }
+
+        # настройка правил исходящего трафика для ресурсов сети
+        egress {
+                protocol       = "ANY"
+                description    = "rule2 description"
+                v4_cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+                from_port      = 0
+                to_port        = 0
+        }
+}

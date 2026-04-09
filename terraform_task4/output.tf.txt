@@ -1,0 +1,6 @@
+output "vm_image_ids" {
+  value = { for k, v in yandex_compute_instance.vm : k => v.boot_disk.0.initialize_params.0.image_id }
+}
+output "vm_zones" {
+  value = { for k, v in yandex_compute_instance.vm : k => v.zone }
+}

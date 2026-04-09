@@ -1,0 +1,13 @@
+cat outputs.tf
+output "vm_name_centos" {
+  value = yandex_compute_instance.vm_centos.name
+}
+output "vm_zone_centos" {
+  value = yandex_compute_instance.vm_centos.zone
+}
+output "vm_name_debian" {
+  value = yandex_compute_instance.vm_debian.name
+}
+output "vm_zone_debian" {
+  value = yandex_compute_instance.vm_debian.zone
+}

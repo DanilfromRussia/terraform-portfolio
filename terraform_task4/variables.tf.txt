@@ -1,0 +1,14 @@
+variable "folder_id" {
+        sensitive = true
+        type = string
+}
+
+variable "cloud_id" {
+        sensitive = true
+        type = string
+}
+
+variable "service_account_key_file" {
+        sensitive = true
+        type = string
+}

@@ -1,0 +1,19 @@
+# main.tf
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+}
+
+resource "yandex_vpc_network" "network-1" {
+  name = "net-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "subnet-1" {
+  name           = "sub-emelyanov2002"
+  zone           = "ru-central1-d"
+  network_id     = yandex_vpc_network.network-1.id
+  v4_cidr_blocks = var.cidr_block
+}

@@ -1,0 +1,48 @@
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+
+        # бэкенд типа s3
+  backend "s3" {
+    endpoint   = "https://storage.yandexcloud.net"
+    bucket     = "tf-state-emelyanov2002"
+    region     = "ru-central1"
+    key        = "opt/01-net/terraform.tfstate"
+    access_key = ""
+    secret_key = ""
+
+    skip_region_validation      = true
+    skip_credentials_validation = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
+}
+
+provider "yandex" {
+        service_account_key_file = "authorized_key.json"
+        folder_id = ""
+        cloud_id = ""
+}
+
+resource "yandex_vpc_network" "network-1" {
+        name = "net-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "subnet-1" {
+        name = "sub-emelyanov2002"
+        zone = "ru-central1-d"
+        network_id = yandex_vpc_network.network-1.id
+        v4_cidr_blocks = ["10.5.0.0/28"]
+}
+
+output "subnet_id" {
+  value = yandex_vpc_subnet.subnet-1.id
+}
+
+output "vpc_id" {
+  value = yandex_vpc_network.network-1.id
+}

@@ -1,0 +1,22 @@
+variable "service_account_key_file" {
+        type = string
+        description = "path to service account key file"
+        sensitive = true
+}
+
+variable "folder_id" {
+        type = string
+        description = "folder_id"
+        sensitive = true
+}
+
+variable "cloud_id" {
+        type = string
+        description = "cloud id"
+        sensitive = true
+}
+
+variable "vm_image_id" {
+        description = "image id we pull from cloud"
+        type = string
+}

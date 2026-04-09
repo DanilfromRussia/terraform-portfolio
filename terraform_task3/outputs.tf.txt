@@ -1,0 +1,11 @@
+output "vm_public_ip" {
+        value = yandex_compute_instance.vm-emelyanov2002.network_interface.0.ip_address
+}
+
+output "vm_disk_size" {
+        value = yandex_compute_instance.vm-emelyanov2002.boot_disk.0.initialize_params.0.size
+}
+
+output "vm_image_id" {
+        value = data.yandex_compute_image.image-name.id
+}

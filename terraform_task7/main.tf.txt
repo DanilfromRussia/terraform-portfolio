@@ -1,0 +1,52 @@
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+}
+
+provider "yandex" {
+        service_account_key_file = "authorized_key.json"
+        cloud_id = var.cloud_id
+        folder_id = var.folder_id
+}
+
+data "yandex_compute_image" "ubuntu" {
+        family = "ubuntu-2204-lts"
+}
+
+# ниже мы вызываем модуль (в нашем случае локальный)
+module "yandex_vpc" {
+  source     = "./modules/vpc" # путь к локальному модулю
+  cidr_block = ["192.168.19.0/24", "192.168.90.0/24"]
+}
+
+module "security_group" {
+        source = "./modules/security_group"
+        network_id = module.yandex_vpc.network_id
+  	allowed_ports  = [22, 80, 443]  
+}
+
+resource "yandex_compute_instance" "vm" {
+  name = "vm-emelyanov2002"
+  zone = "ru-central1-d"
+  platform_id = "standard-v3"
+
+  resources {
+    cores  = 2
+    memory = 2
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+    }
+  }
+# используем модуль для передачи значения идентетификатора подсети для нашей ВМ
+  network_interface {
+    subnet_id = module.yandex_vpc.subnet-1
+    security_group_ids = [module.security_group.security_group_id]
+    nat       = true
+  }
+}

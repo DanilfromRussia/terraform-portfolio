@@ -1,0 +1,7 @@
+output "vm_name" {
+  value = yandex_compute_instance.vm.name
+}
+
+output "allowed_ports" {
+  value = module.security_group.allowed_ports
+}

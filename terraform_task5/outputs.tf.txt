@@ -1,0 +1,16 @@
+
+output "dev_instance_name" {
+  value = yandex_compute_instance.vm_dev.name
+}
+
+output "prod_instance_name" {
+  value = yandex_compute_instance.vm_prod.name
+}
+
+output "dev_instance_ports" {
+  value = yandex_vpc_security_group.sgroup_dev.ingress[*].port
+}
+
+output "prod_instance_ports" {
+  value = yandex_vpc_security_group.sgroup_prod.ingress[*].port
+}

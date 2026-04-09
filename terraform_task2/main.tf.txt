@@ -1,0 +1,24 @@
+terraform {
+        required_providers {
+                yandex = {
+                        source = "yandex-cloud/yandex"
+                }
+        }
+        required_version = ">= 0.13"
+}
+
+provider "yandex" {
+        zone = "ru-central1-d"
+        cloud_id = var.cloud_id
+        folder_id = var.folder_id
+        service_account_key_file = var.service_account_key_file
+}
+
+resource "yandex_storage_bucket" "bucket-emelyanov2002" {
+        bucket = var.bucket_name
+        acl = var.bucket_acl
+        versioning { enabled = var.bucket_versioning["enabled"] }
+        tags = { Project = var.bucket_tags["Project"]
+                 Company = var.bucket_tags["Company"]
+                }
+}

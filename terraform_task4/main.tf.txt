@@ -1,0 +1,86 @@
+terraform {
+        required_providers {
+                yandex = {
+                        source = "yandex-cloud/yandex"
+                }
+        }
+        required_version = ">=0.13"
+}
+
+provider "yandex" {
+        service_account_key_file = var.service_account_key_file
+        cloud_id = var.cloud_id
+        folder_id = var.folder_id
+}
+#____________Источники Данных для наших трех виртуалок
+
+data "yandex_compute_image" "centos" {
+        family = "centos-stream-9-oslogin"
+}
+
+data "yandex_compute_image" "debian" {
+        family = "debian-12"
+}
+
+data "yandex_compute_image" "ubuntu" {
+        family = "ubuntu-2204-lts-oslogin"
+}
+#_____________________________________________________
+
+locals {
+  vm_config = {
+#     default = {
+        centos = {
+                zone     = "ru-central1-a"
+                image_id = data.yandex_compute_image.centos.id
+        }
+        debian = {
+                zone = "ru-central1-b"
+                image_id = data.yandex_compute_image.debian.id
+        }
+        ubuntu = {
+                zone = "ru-central1-d"
+                image_id = data.yandex_compute_image.ubuntu.id
+                }
+#        }
+   }
+}
+
+
+
+resource "yandex_vpc_network" "foo" {
+        name = "network-emelyanov2002"
+}
+
+resource "yandex_vpc_subnet" "boo" {
+        for_each = local.vm_config
+
+        name = "subnet-emelyanov2002-${each.key}"
+        #for_each = local.vm_config
+        zone = each.value.zone
+        network_id     = yandex_vpc_network.foo.id
+        v4_cidr_blocks = each.key == "centos" ? ["10.5.0.0/28"] : (each.key == "debian" ? ["10.5.1.0/28"] : ["10.5.2.0/28"])
+}
+
+resource "yandex_compute_instance" "vm" {
+        platform_id = "standard-v3"
+        for_each = local.vm_config
+        zone = each.value.zone
+        name = each.key
+
+        resources {
+                cores = 2
+                memory = 2
+        }
+
+        network_interface {
+                subnet_id = yandex_vpc_subnet.boo[each.key].id
+                nat = true
+        }
+
+        boot_disk {
+                initialize_params {
+                        image_id = each.value.image_id
+                }
+        }
+}
